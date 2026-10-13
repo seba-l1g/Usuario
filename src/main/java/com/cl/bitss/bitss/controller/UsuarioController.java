@@ -2,12 +2,14 @@ package com.cl.bitss.bitss.controller;
 
 import com.cl.bitss.bitss.model.Usuario;
 import com.cl.bitss.bitss.service.UsuarioService;
+import com.cl.bitss.bitss.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -16,6 +18,18 @@ public class UsuarioController {
 
     public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
+    }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> datos) {
+        Usuario usuario = usuarioService.autenticar(datos.getOrDefault("correo", ""), datos.getOrDefault("password", ""));
+        return ResponseEntity.ok(Map.of("token", JwtUtil.generate(usuario.getCorreo()), "tipo", "Bearer", "expiraEnSegundos", 3600, "usuarioId", usuario.getId(), "correo", usuario.getCorreo()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout() {
+        return ResponseEntity.ok(Map.of("mensaje", "Sesión cerrada. Elimina el token del cliente."));
     }
 
     @GetMapping
